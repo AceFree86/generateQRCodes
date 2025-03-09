@@ -126,11 +126,11 @@ selectElements.forEach((select) => {
 tabs.forEach((tab, index) => {
   tab.addEventListener("click", function () {
     tabs.forEach((t) => {
-      t.style.backgroundColor = "transparent"; // Reset background color
+      t.style.backgroundColor = "transparent";
       t.style.color = "#666";
     });
 
-    tab.style.backgroundColor = "#ff725e"; // Custom background color (light coral)
+    tab.style.backgroundColor = "#ff725e";
     tab.style.color = "white";
 
     selectedIndex = index;
@@ -161,23 +161,21 @@ function aditTextToLink(tabIndex) {
 function isValidInput(inputValue, tabIndex) {
   if (inputValue === "") {
     alert(getDescription(selectedIndex, languageSelector.value).alert);
-    return false; // Invalid input
+    return false;
   }
   if ([1, 2, 3].includes(tabIndex)) {
-    // For phone, viber, and whatsapp
     if (isNaN(inputValue)) {
       alert(getDescription(selectedIndex, languageSelector.value).alert);
-      return false; // Invalid input (not a number)
+      return false;
     }
   }
   if ([0, 4].includes(tabIndex)) {
-    // For website and telegram
     if (typeof inputValue !== "string" || inputValue.trim() === "") {
       alert(getDescription(selectedIndex, languageSelector.value).alert);
-      return false; // Invalid input (not a string)
+      return false;
     }
   }
-  return true; // Valid input
+  return true;
 }
 
 function generateQR(event, inputId, index) {
@@ -185,7 +183,7 @@ function generateQR(event, inputId, index) {
   const inputValue = document.getElementById(inputId).value;
 
   if (!isValidInput(inputValue, selectedIndex)) {
-    return; // Exit if input is invalid
+    return;
   }
   clearUI();
   showSpinner();
@@ -201,7 +199,6 @@ function generateQR(event, inputId, index) {
 
 // Generate QR code
 const generateQRCode = (url, size) => {
-  console.log(`Selected value ${url}`);
   const qrcode = new QRCode("qrcode", {
     text: url,
     width: parseInt(size),
