@@ -1,15 +1,17 @@
 const languageSelector = document.getElementById("languageSelector");
 const title1 = document.getElementById("title1");
 const title2 = document.getElementById("title2");
-const url = document.getElementById("url");
+const tabs = document.querySelectorAll(".tab-link");
+const btns = document.querySelectorAll(".button-generate-qr");
+const contents = document.querySelectorAll(".tab-content");
 const description1 = document.getElementById("description1");
 const description2 = document.getElementById("description2");
-const btn = document.getElementById("btn");
-const form = document.getElementById("generate-form");
-const select = document.getElementById("size");
+const selectElements = document.querySelectorAll(".qr-size-select");
 const spinner = document.getElementById("spinner");
 const qr = document.getElementById("qrcode");
-const btn2Name = "";
+
+let selectedValue = "500x500";
+let selectedIndex = 0;
 
 const browserLang = getBrowserLanguage();
 const langToSet = browserLang; // Default to "en" if no preference
@@ -17,36 +19,76 @@ const langToSet = browserLang; // Default to "en" if no preference
 // Language Data
 const TRANSLATIONS = {
   en: {
-    title: "QR Codes Generate",
-    description1:
-      "QR Codes allow smartphone users to access your website simply and quickly.",
-    description2:
-      "Enter your URL below to generate a QR Code and download the image.",
+    title: "QR Code Generator",
     btn: "Generate QR Code",
     btn2: "Save Image",
-    alert: "Please enter a URL",
-    placeholder: "Enter a URL",
+    alert: "Please enter a {type}",
+    generalDescription:
+      "QR Codes allow smartphone users to access your {type} simply and quickly.",
+    description2:
+      "Enter your {type} below to generate a QR Code and download the image.",
+    0: "Enter Website URL (e.g., https://example.com)",
+    1: "Enter Phone Number (e.g., +123456789)",
+    2: "Enter Viber Number (e.g., +123456789)",
+    3: "Enter WhatsApp Number (e.g., +123456789)",
+    4: "Enter Telegram Username (e.g., @username)",
   },
   uk: {
-    title: "Створення QR-кодів",
-    description1:
-      "QR-коди дозволяють користувачам смартфонів швидко і просто отримати доступ до вашого вебсайту.",
-    description2:
-      "Введіть URL нижче, щоб згенерувати QR-код і завантажити зображення.",
+    title: "Генератор QR-кодів",
     btn: "Створити QR-код",
     btn2: "Зберегти зображення",
-    alert: "Будь ласка, введіть URL",
-    placeholder: "Введіть URL",
+    alert: "Будь ласка, введіть {type}",
+    generalDescription:
+      "QR-коди дозволяють користувачам смартфонів отримати доступ до вашого {type} просто і швидко.",
+    description2:
+      "Введіть {type} нижче, щоб створити QR-код і завантажити зображення.",
+    0: "Введіть URL вебсайту (https://example.com)",
+    1: "Номер телефону (123456789)",
+    2: "Номер Viber (123456789)",
+    3: "Номер WhatsApp (123456789)",
+    4: "Ім'я користувача Telegram (@username)",
   },
 };
 
+function getDescription(tabIndex, lang) {
+  const typeMap = {
+    0: { en: "website", uk: "веб-сайт" },
+    1: { en: "phone number", uk: "номеру телефону" },
+    2: { en: "viber number", uk: "номеру viber" },
+    3: { en: "whats number", uk: "номеру whats" },
+    4: { en: "telegram username", uk: "ім'я користувача telegram" },
+  };
+
+  const type = typeMap[tabIndex]?.[lang];
+  return {
+    description1: TRANSLATIONS[lang].generalDescription.replace("{type}", type),
+    description2: TRANSLATIONS[lang].description2.replace("{type}", type),
+    alert: TRANSLATIONS[lang].alert.replace("{type}", type),
+  };
+}
+
+function updatePlaceholder(tabIndex, lang) {
+  const inputIds = {
+    0: "website",
+    1: "phone",
+    2: "viber",
+    3: "whats",
+    4: "telegram",
+  };
+
+  const inputId = inputIds[tabIndex];
+  const inputField = document.getElementById(inputId);
+  inputField.placeholder = TRANSLATIONS[lang][tabIndex];
+}
+
 const changeLanguage = (lang) => {
+  const descriptions = getDescription(selectedIndex, lang);
   title1.textContent = TRANSLATIONS[lang].title;
   title2.textContent = TRANSLATIONS[lang].title;
-  url.placeholder = TRANSLATIONS[lang].placeholder;
-  description1.textContent = TRANSLATIONS[lang].description1;
-  description2.textContent = TRANSLATIONS[lang].description2;
-  btn.textContent = TRANSLATIONS[lang].btn;
+  description1.textContent = descriptions.description1;
+  description2.textContent = descriptions.description2;
+  btns.forEach((btn) => (btn.textContent = TRANSLATIONS[lang].btn));
+  updatePlaceholder(selectedIndex, lang);
   languageSelector.value = lang;
 };
 
@@ -65,42 +107,106 @@ function getBrowserLanguage() {
   return lang; // Default to the browser's language
 }
 
-for (let i = 100; i <= 2000; i += 100) {
-  const option = document.createElement("option");
-  option.value = i;
-  option.textContent = `${i}x${i}`;
-  if (i === 500) option.selected = true; // Set default to 500x500
-  select.appendChild(option);
+selectElements.forEach((select) => {
+  for (let i = 100; i <= 2000; i += 100) {
+    const option = document.createElement("option");
+    option.value = `${i}x${i}`;
+    option.textContent = `${i}x${i}`;
+    if (i === 500) option.selected = true; // Set default to 500x500
+    select.appendChild(option);
+  }
+});
+
+selectElements.forEach((select) => {
+  select.addEventListener("change", () => {
+    selectedValue = select.value;
+  });
+});
+
+tabs.forEach((tab, index) => {
+  tab.addEventListener("click", function () {
+    tabs.forEach((t) => {
+      t.style.backgroundColor = "transparent"; // Reset background color
+      t.style.color = "#666";
+    });
+
+    tab.style.backgroundColor = "#ff725e"; // Custom background color (light coral)
+    tab.style.color = "white";
+
+    selectedIndex = index;
+
+    contents.forEach((content) => content.classList.add("hidden"));
+    contents[index].classList.remove("hidden");
+    changeLanguage(languageSelector.value);
+  });
+});
+
+function aditTextToLink(tabIndex) {
+  if (tabIndex === 1) {
+    return "tel:";
+  }
+  if (tabIndex === 2) {
+    return "viber://chat?number=";
+  }
+  if (tabIndex === 3) {
+    return "https://wa.me/";
+  }
+  if (tabIndex === 4) {
+    return "https://t.me/";
+  } else {
+    return "";
+  }
 }
 
-const onGenerateSubmit = (e) => {
-  e.preventDefault();
-  clearUI();
-
-  const size = select.value;
-
-  if (url === "") {
-    alert(TRANSLATIONS[languageSelector.value].alert);
-  } else {
-    showSpinner();
-    setTimeout(() => {
-      hideSpinner();
-      generateQRCode(url.value, size);
-      setTimeout(() => {
-        const saveUrl = qr.querySelector("canvas").toDataURL();
-        createSaveBtn(saveUrl);
-      }, 50);
-    }, 1000);
+function isValidInput(inputValue, tabIndex) {
+  if (inputValue === "") {
+    alert(getDescription(selectedIndex, languageSelector.value).alert);
+    return false; // Invalid input
   }
-};
+  if ([1, 2, 3].includes(tabIndex)) {
+    // For phone, viber, and whatsapp
+    if (isNaN(inputValue)) {
+      alert(getDescription(selectedIndex, languageSelector.value).alert);
+      return false; // Invalid input (not a number)
+    }
+  }
+  if ([0, 4].includes(tabIndex)) {
+    // For website and telegram
+    if (typeof inputValue !== "string" || inputValue.trim() === "") {
+      alert(getDescription(selectedIndex, languageSelector.value).alert);
+      return false; // Invalid input (not a string)
+    }
+  }
+  return true; // Valid input
+}
+
+function generateQR(event, inputId, index) {
+  event.preventDefault();
+  const inputValue = document.getElementById(inputId).value;
+
+  if (!isValidInput(inputValue, selectedIndex)) {
+    return; // Exit if input is invalid
+  }
+  clearUI();
+  showSpinner();
+  setTimeout(() => {
+    hideSpinner();
+    generateQRCode(`${aditTextToLink(index)}${inputValue}`, selectedValue);
+    setTimeout(() => {
+      const saveUrl = qr.querySelector("canvas").toDataURL();
+      createSaveBtn(saveUrl);
+    }, 50);
+  }, 1000);
+}
 
 // Generate QR code
 const generateQRCode = (url, size) => {
+  console.log(`Selected value ${url}`);
   const qrcode = new QRCode("qrcode", {
     text: url,
     width: parseInt(size),
     height: parseInt(size),
-    correctLevel: QRCode.CorrectLevel.H, // High error correction
+    correctLevel: QRCode.CorrectLevel.H,
   });
 };
 
@@ -132,4 +238,26 @@ const createSaveBtn = (saveUrl) => {
 changeLanguage(langToSet);
 hideSpinner();
 
-form.addEventListener("submit", onGenerateSubmit);
+document
+  .getElementById("website-form")
+  .addEventListener("submit", function (e) {
+    generateQR(e, "website", 0);
+  });
+
+document.getElementById("phone-form").addEventListener("submit", function (e) {
+  generateQR(e, "phone", 1);
+});
+
+document.getElementById("viber-form").addEventListener("submit", function (e) {
+  generateQR(e, "viber", 2);
+});
+
+document.getElementById("whats-form").addEventListener("submit", function (e) {
+  generateQR(e, "whats", 3);
+});
+
+document
+  .getElementById("telegram-form")
+  .addEventListener("submit", function (e) {
+    generateQR(e, "telegram", 4);
+  });
