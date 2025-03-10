@@ -53,9 +53,9 @@ const TRANSLATIONS = {
 function getDescription(tabIndex, lang) {
   const typeMap = {
     0: { en: "website", uk: "веб-сайт" },
-    1: { en: "phone number", uk: "номеру телефону" },
-    2: { en: "viber number", uk: "номеру viber" },
-    3: { en: "whats number", uk: "номеру whats" },
+    1: { en: "phone number", uk: "номер телефону" },
+    2: { en: "viber number", uk: "номер viber" },
+    3: { en: "whats number", uk: "номер whats" },
     4: { en: "telegram username", uk: "ім'я користувача telegram" },
   };
 
